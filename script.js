@@ -1,8 +1,12 @@
-// Функция для правильной упаковки комментария в бинарный формат (BOC)
+// Проверка наличия ton_core перед сериализацией
 function encodeTextPayload(text) {
-    // Используем правильное имя объекта: TonCore
-    const cell = window.TonCore.beginCell()
-        .storeUint(0, 32) // op-code для текстового комментария
+    if (!window.ton_core) {
+        alert("Ошибка: TON Core не загружен.");
+        return null;
+    }
+
+    const cell = window.ton_core.beginCell()
+        .storeUint(0, 32)
         .storeStringTail(text)
         .endCell();
     return cell.toBoc().toString('base64');
@@ -12,17 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
 
     if (!tg.initData) {
-        document.getElementById('app').innerHTML = '<h1>Ошибка</h1><p>Это приложение можно открыть только внутри Telegram.</p>';
+        document.getElementById('app').innerHTML = `
+            <h1>Ошибка</h1>
+            <p>Это приложение можно открыть только внутри Telegram.</p>
+        `;
         return;
     }
 
     tg.ready();
     tg.expand();
 
-    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
+    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6";
 
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        // ИСПРАВЛЕНО: Убрали /webapp из пути
         manifestUrl: 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json',
         buttonRootId: 'ton-connect-button'
     });
@@ -36,14 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     sendTxButton.addEventListener('click', async () => {
-        if (!tonConnectUI.connected) {
+        const wallet = await tonConnectUI.connectedWallet;
+        if (!wallet) {
             alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
             return;
         }
 
         const amount = parseFloat(amountInput.value);
         if (isNaN(amount) || amount <= 0.01) {
-            alert('Пожалуйста, введите сумму больше 0.01 TON.');
+            alert('Введите сумму больше 0.01 TON.');
             return;
         }
 
@@ -51,30 +58,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const userId = tg.initDataUnsafe?.user?.id;
 
         if (!userId) {
-            alert("Критическая ошибка: не удалось получить ваш Telegram ID.");
+            alert("Ошибка: не удалось получить ваш Telegram ID.");
             return;
         }
 
         const comment = `dep_${userId}`;
         const payload = encodeTextPayload(comment);
 
-        const transaction = {
+        if (!payload) return;
+
+        const tx = {
             validUntil: Math.floor(Date.now() / 1000) + 300,
             messages: [
                 {
                     address: BOT_WALLET_ADDRESS,
                     amount: amountNano,
-                    payload: payload 
+                    payload
                 }
             ]
         };
 
         try {
-            await tonConnectUI.sendTransaction(transaction);
+            await tonConnectUI.sendTransaction(tx);
             tg.close();
         } catch (err) {
             console.error("Ошибка при отправке транзакции:", err);
-            alert('Произошла ошибка при отправке транзакции. Попробуйте снова.');
+            alert('Ошибка при отправке транзакции. Попробуйте снова.');
         }
     });
 });
