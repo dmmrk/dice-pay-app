@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.ready();
     tg.expand();
 
-    // ВАЖНО: Адрес кошелька вашего БОТА, куда будут приходить платежи
+    // ВАЖНО: Адрес кошелька вашего БОТА
     const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
 
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendTxButton.addEventListener('click', async () => {
         const amount = parseFloat(amountInput.value);
         if (isNaN(amount) || amount <= 0) {
-            tg.showAlert('Введите корректную сумму.');
+            tg.showAlert('Пожалуйста, введите корректную сумму.');
             return;
         }
 
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const comment = `dep_${userId}`;
-        const payload = encodeTextPayload(comment); // Создаем правильный payload
+        const payload = encodeTextPayload(comment); // Создаем правильный бинарный payload
 
         const transaction = {
             validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
@@ -60,11 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await tonConnectUI.sendTransaction(transaction);
-            // Можно не показывать alert, так как кошелек сам покажет уведомление
             tg.close();
         } catch (err) {
             console.error("Ошибка при отправке транзакции:", err);
-            tg.showAlert('Произошла ошибка при отправке транзакции.');
+            tg.showAlert('Произошла ошибка при отправке транзакции. Попробуйте снова.');
         }
     });
 });
