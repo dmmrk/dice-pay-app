@@ -1,75 +1,53 @@
-// Функция для правильной упаковки комментария в бинарный формат (BOC)
-function encodeTextPayload(text) {
-    // Используем ton_core, который мы подключили в index.html
-    const cell = window.ton_core.beginCell()
-        .storeUint(0, 32) // op-code для текстового комментария
-        .storeStringTail(text)
-        .endCell();
-    return cell.toBoc().toString('base64'); // Возвращаем в base64
-}
+<!DOCTYPE html>
 
-document.addEventListener('DOMContentLoaded', () => {
-    const tg = window.Telegram.WebApp;
+<html lang="ru">
 
-    if (Object.keys(tg.initDataUnsafe).length === 0) {
-        document.getElementById('app').innerHTML = '<h1>Ошибка</h1><p>Это приложение можно открыть только внутри Telegram.</p>';
-        return;
-    }
+<head>
 
-    tg.ready();
-    tg.expand();
+  <meta charset="UTF-8">
 
-    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json',
-        buttonRootId: 'ton-connect-button'
-    });
+  <title>Пополнение TON</title>
 
-    const sendTxButton = document.getElementById('send-tx-button');
-    const amountInput = document.getElementById('amount-input');
+  <link rel="stylesheet" href="style.css">
 
-    sendTxButton.addEventListener('click', async () => {
-        // Проверяем, подключен ли кошелек, перед отправкой
-        if (!tonConnectUI.connected) {
-            alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек с помощью кнопки выше.');
-            return;
-        }
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-        const amount = parseFloat(amountInput.value);
-        if (isNaN(amount) || amount <= 0.01) {
-            alert('Пожалуйста, введите сумму больше 0.01 TON.');
-            return;
-        }
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
-        const amountNano = Math.floor(amount * 1e9).toString();
-        const userId = tg.initDataUnsafe?.user?.id;
+  <script src="https://unpkg.com/@ton/core@0.56.3/dist/ton-core.min.js"></script>
 
-        if (!userId) {
-            alert("Критическая ошибка: не удалось получить ваш Telegram ID.");
-            return;
-        }
+</head>
 
-        const comment = `dep_${userId}`;
-        const payload = encodeTextPayload(comment);
+<body>
 
-        const transaction = {
-            validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
-            messages: [
-                {
-                    address: BOT_WALLET_ADDRESS,
-                    amount: amountNano,
-                    payload: payload 
-                }
-            ]
-        };
+  <div id="app">
 
-        try {
-            await tonConnectUI.sendTransaction(transaction);
-            tg.close();
-        } catch (err) {
-            console.error("Ошибка при отправке транзакции:", err);
-            alert('Произошла ошибка при отправке транзакции. Попробуйте снова.');
-        }
-    });
-});
+    <h1>💎 Пополнение баланса</h1>
+
+    <p>Подключите кошелек или воспользуйтесь Telegram Wallet.</p>
+
+    <div id="ton-connect-button"></div>
+
+
+
+    <div id="payment-form">
+
+      <h3>Введите сумму в TON:</h3>
+
+      <input type="number" id="amount-input" value="0.5" step="0.1" min="0.1">
+
+      <button id="send-tx-button">Пополнить</button>
+
+    </div>
+
+  </div>
+
+
+
+  <script src="script.js"></script>
+
+</body>
+
+</html>
