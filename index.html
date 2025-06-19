@@ -1,53 +1,29 @@
 <!DOCTYPE html>
-
 <html lang="ru">
-
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Пополнение TON</title>
 
-  <meta charset="UTF-8">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
-  <title>Пополнение TON</title>
-
-  <link rel="stylesheet" href="style.css">
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-
-  <script src="https://unpkg.com/@ton/core@0.56.3/dist/ton-core.min.js"></script>
-
+  <link rel="stylesheet" href="style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <script src="https://unpkg.com/@ton/core@0.56.3/dist/ton-core.min.js"></script>
 </head>
-
 <body>
+  <div id="app">
+    <h1>💎 Пополнение баланса</h1>
+    <p>Подключите кошелек или воспользуйтесь Telegram Wallet.</p>
 
-  <div id="app">
+    <div id="ton-connect-button"></div>
 
-    <h1>💎 Пополнение баланса</h1>
+    <div id="payment-form" class="hidden">
+      <h3>Введите сумму в TON:</h3>
+      <input type="number" id="amount-input" value="0.5" step="0.1" min="0.1">
+      <button id="send-tx-button">Пополнить</button>
+    </div>
+  </div>
 
-    <p>Подключите кошелек или воспользуйтесь Telegram Wallet.</p>
-
-    <div id="ton-connect-button"></div>
-
-
-
-    <div id="payment-form">
-
-      <h3>Введите сумму в TON:</h3>
-
-      <input type="number" id="amount-input" value="0.5" step="0.1" min="0.1">
-
-      <button id="send-tx-button">Пополнить</button>
-
-    </div>
-
-  </div>
-
-
-
-  <script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
-
 </html>
