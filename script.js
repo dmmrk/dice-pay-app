@@ -1,30 +1,12 @@
-// Функция для правильной упаковки комментария в бинарный формат (BOC)
-function encodeTextPayload(text) {
-    if (!window.TonCore) {
-        console.error("TON Core library (window.TonCore) is not loaded!");
-        alert("Ошибка: Необходимая библиотека не загружена.");
-        return null;
-    }
-    const cell = window.TonCore.beginCell()
-        .storeUint(0, 32) // op-code для текстового комментария
-        .storeStringTail(text)
-        .endCell();
-    return cell.toBoc().toString('base64');
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
-
-    if (!tg.initData) {
-        document.getElementById('app').innerHTML = '<h1>Ошибка</h1><p>Это приложение можно открыть только внутри Telegram.</p>';
-        return;
-    }
-
     tg.ready();
     tg.expand();
 
-    const BOT_WALLET_ADDRESS = "ВАШ_АДРЕС_КОШЕЛЬКА_БОТА"; 
+    // Адрес кошелька вашего БОТА, куда будут приходить платежи
+    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
 
+    // Инициализируем TonConnectUI
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json',
         buttonRootId: 'ton-connect-button'
@@ -34,10 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendTxButton = document.getElementById('send-tx-button');
     const amountInput = document.getElementById('amount-input');
 
+    // Показываем/скрываем форму оплаты в зависимости от статуса подключения кошелька
     tonConnectUI.onStatusChange(wallet => {
         paymentForm.classList.toggle('hidden', !wallet);
     });
 
+    // Обрабатываем нажатие на кнопку "Пополнить"
     sendTxButton.addEventListener('click', async () => {
         if (!tonConnectUI.connected) {
             alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
@@ -59,17 +43,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const comment = `dep_${userId}`;
-        const payload = encodeTextPayload(comment);
         
-        if (!payload) return; // Остановка, если payload не был создан
-
+        // Формируем простую транзакцию. TON Connect сам упакует комментарий.
         const transaction = {
-            validUntil: Math.floor(Date.now() / 1000) + 300,
+            validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
             messages: [
                 {
                     address: BOT_WALLET_ADDRESS,
                     amount: amountNano,
-                    payload: payload 
+                    payload: comment // Передаем комментарий как простой текст
                 }
             ]
         };
