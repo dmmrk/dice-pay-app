@@ -1,7 +1,7 @@
 // Функция для правильной упаковки комментария в бинарный формат (BOC)
 function encodeTextPayload(text) {
-    // ИСПРАВЛЕНО: Правильное имя объекта - window.TonCore
-    const cell = window.TonCore.beginCell()
+    // ИСПРАВЛЕНО: Правильное имя объекта - window.ton, а не window.ton_core
+    const cell = window.ton.beginCell()
         .storeUint(0, 32) // op-code для текстового комментария
         .storeStringTail(text)
         .endCell();
