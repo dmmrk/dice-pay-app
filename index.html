@@ -7,22 +7,18 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/@ton/core@0.56.3/dist/ton-core.min.js"></script>
 </head>
 <body>
     <div id="app">
         <h1>💎 Пополнение баланса</h1>
-        <p>Подключите ваш кошелек, чтобы совершить платеж.</p>
-        
+        <p>Подключите ваш кошелек для проведения платежа.</p>
         <div id="ton-connect-button"></div>
-
         <div id="payment-form" class="hidden">
             <h3>Введите сумму в TON:</h3>
             <input type="number" id="amount-input" value="0.5" step="0.1" min="0.1">
             <button id="send-tx-button">Пополнить</button>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
