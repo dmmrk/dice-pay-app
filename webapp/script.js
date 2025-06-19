@@ -1,11 +1,10 @@
 // Функция для правильной упаковки комментария в бинарный формат (BOC)
 function encodeTextPayload(text) {
-    // Используем ton_core, который мы подключили в index.html
     const cell = window.ton_core.beginCell()
         .storeUint(0, 32) // op-code для текстового комментария
         .storeStringTail(text)
         .endCell();
-    return cell.toBoc().toString('base64'); // Возвращаем в base64
+    return cell.toBoc().toString('base64');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.ready();
     tg.expand();
 
-    // ВАЖНО: Адрес кошелька вашего БОТА
     const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
 
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -32,7 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sendTxButton.addEventListener('click', async () => {
         const amount = parseFloat(amountInput.value);
         if (isNaN(amount) || amount <= 0) {
-            tg.showAlert('Пожалуйста, введите корректную сумму.');
+            // ИСПРАВЛЕНО: Используем стандартный alert
+            alert('Пожалуйста, введите корректную сумму.');
             return;
         }
 
@@ -40,12 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const userId = tg.initDataUnsafe?.user?.id;
 
         if (!userId) {
-            tg.showAlert("Ошибка: не удалось получить ваш Telegram ID.");
+            // ИСПРАВЛЕНО: Используем стандартный alert
+            alert("Ошибка: не удалось получить ваш Telegram ID.");
             return;
         }
 
         const comment = `dep_${userId}`;
-        const payload = encodeTextPayload(comment); // Создаем правильный бинарный payload
+        const payload = encodeTextPayload(comment);
 
         const transaction = {
             validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
@@ -53,17 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     address: BOT_WALLET_ADDRESS,
                     amount: amountNano.toString(),
-                    payload: payload // Используем наш бинарный payload
+                    payload: payload 
                 }
             ]
         };
 
         try {
             await tonConnectUI.sendTransaction(transaction);
+            // Уведомление об успехе можно убрать, кошелек сам его покажет
             tg.close();
         } catch (err) {
             console.error("Ошибка при отправке транзакции:", err);
-            tg.showAlert('Произошла ошибка при отправке транзакции. Попробуйте снова.');
+            // ИСПРАВЛЕНО: Используем стандартный alert
+            alert('Произошла ошибка при отправке транзакции. Попробуйте снова.');
         }
     });
 });
