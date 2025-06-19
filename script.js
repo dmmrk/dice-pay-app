@@ -1,12 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
+
+    if (!tg.initData) {
+        document.getElementById('app').innerHTML = '<h1>Ошибка</h1><p>Это приложение можно открыть только внутри Telegram.</p>';
+        return;
+    }
+
     tg.ready();
     tg.expand();
 
-    // Адрес кошелька вашего БОТА, куда будут приходить платежи
     const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
 
-    // Инициализируем TonConnectUI
+    // Инициализируем TonConnectUI, как и раньше
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json',
         buttonRootId: 'ton-connect-button'
@@ -16,12 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendTxButton = document.getElementById('send-tx-button');
     const amountInput = document.getElementById('amount-input');
 
-    // Показываем/скрываем форму оплаты в зависимости от статуса подключения кошелька
     tonConnectUI.onStatusChange(wallet => {
         paymentForm.classList.toggle('hidden', !wallet);
     });
 
-    // Обрабатываем нажатие на кнопку "Пополнить"
     sendTxButton.addEventListener('click', async () => {
         if (!tonConnectUI.connected) {
             alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
@@ -42,16 +45,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // ВАЖНО: Мы больше не создаем payload вручную.
+        // Мы передаем комментарий как простой текст, а библиотека
+        // TON Connect UI сама его правильно упакует для кошелька.
         const comment = `dep_${userId}`;
-        
-        // Формируем простую транзакцию. TON Connect сам упакует комментарий.
+
         const transaction = {
-            validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
+            validUntil: Math.floor(Date.now() / 1000) + 300,
             messages: [
                 {
                     address: BOT_WALLET_ADDRESS,
                     amount: amountNano,
-                    payload: comment // Передаем комментарий как простой текст
+                    // Передаем комментарий как 'payload', TonConnectUI сам его обработает
+                    payload: btoa(comment) // Просто кодируем текст в base64
                 }
             ]
         };
@@ -61,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tg.close();
         } catch (err) {
             console.error("Ошибка при отправке транзакции:", err);
+            // alert('Произошла ошибка при отправке транзакции. Попробуйте снова.');
         }
     });
 });
