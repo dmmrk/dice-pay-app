@@ -1,29 +1,35 @@
-// Функция для правильной упаковки комментария в бинарный формат (BOC)
+// --- Упаковка комментария dep_<user_id> в BOC формат ---
 function encodeTextPayload(text) {
-    // Проверяем, загрузилась ли библиотека
-    if (!window.TonCore) {
-        alert("Ошибка: Необходимая библиотека (TonCore) не загружена. Пожалуйста, обновите страницу.");
+    if (!window.ton_core) {
+        alert("❌ Ошибка: TON Core не загружен.");
         return null;
     }
-    const cell = window.TonCore.beginCell()
-        .storeUint(0, 32) // op-code для текстового комментария
+
+    const cell = window.ton_core.beginCell()
+        .storeUint(0, 32) // msg.dataText (тип сообщения)
         .storeStringTail(text)
         .endCell();
+
     return cell.toBoc().toString('base64');
 }
 
+// --- Инициализация после загрузки страницы ---
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
 
+    // Защита от открытия вне Telegram
     if (!tg.initData) {
-        document.getElementById('app').innerHTML = '<h1>Ошибка</h1><p>Это приложение можно открыть только внутри Telegram.</p>';
+        document.getElementById('app').innerHTML = `
+            <h1>Ошибка</h1>
+            <p>Это приложение можно открыть только внутри Telegram.</p>
+        `;
         return;
     }
 
     tg.ready();
     tg.expand();
 
-    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
+    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6";
 
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json',
@@ -34,24 +40,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendTxButton = document.getElementById('send-tx-button');
     const amountInput = document.getElementById('amount-input');
 
-    // Эта подписка теперь будет только скрывать/показывать форму, что не так критично
+    // Показываем/скрываем форму после подключения кошелька
     tonConnectUI.onStatusChange(wallet => {
         paymentForm.classList.toggle('hidden', !wallet);
     });
 
     sendTxButton.addEventListener('click', async () => {
-        // --- ГЛАВНОЕ ИСПРАВЛЕНИЕ ---
-        // Проверяем статус подключения напрямую через свойство .wallet
-        const wallet = tonConnectUI.wallet;
-
-        if (!wallet) {
-            alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
-            return;
-        }
+        // ✅ Проверяем, подключен ли кошелек (новый способ)
+  try {
+    const wallet = await tonConnectUI.ensureWalletConnected(); // <--- правильно для TON Space
+    if (!wallet) {
+        alert('Кошелек не подключен. Пожалуйста, подключите TON Space или другой кошелек.');
+        return;
+    }
+} catch (err) {
+    alert('Ошибка подключения кошелька. Попробуйте снова.');
+    return;
+}
 
         const amount = parseFloat(amountInput.value);
         if (isNaN(amount) || amount <= 0.01) {
-            alert('Пожалуйста, введите сумму больше 0.01 TON.');
+            alert('Введите сумму больше 0.01 TON.');
             return;
         }
 
@@ -59,32 +68,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const userId = tg.initDataUnsafe?.user?.id;
 
         if (!userId) {
-            alert("Критическая ошибка: не удалось получить ваш Telegram ID.");
+            alert("❌ Не удалось получить ваш Telegram ID.");
             return;
         }
 
         const comment = `dep_${userId}`;
         const payload = encodeTextPayload(comment);
-        
-        // Дополнительная проверка на случай ошибки в encodeTextPayload
         if (!payload) return;
 
-        const transaction = {
-            validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
+        const tx = {
+            validUntil: Math.floor(Date.now() / 1000) + 300, // +5 минут
             messages: [
                 {
                     address: BOT_WALLET_ADDRESS,
                     amount: amountNano,
-                    payload: payload 
+                    payload
                 }
             ]
         };
 
         try {
-            await tonConnectUI.sendTransaction(transaction);
-            tg.close();
+            await tonConnectUI.sendTransaction(tx);
+            tg.close(); // Закрыть WebApp после отправки
         } catch (err) {
-            console.error("Ошибка при отправке транзакции:", err);
+            console.error("Ошибка TonConnect:", err);
+            alert('Ошибка при отправке транзакции. Попробуйте снова.');
         }
     });
 });
