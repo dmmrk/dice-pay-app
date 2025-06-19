@@ -1,13 +1,9 @@
 body {
   font-family: sans-serif;
   background-color: #151515;
-  color: #fff;
+  color: #ffffff;
   padding: 20px;
   margin: 0;
-}
-
-h1, h3 {
-  color: #00f5a0;
 }
 
 #app {
@@ -15,13 +11,23 @@ h1, h3 {
   margin: auto;
 }
 
+h1 {
+  color: #00f5a0;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+p, h3 {
+  margin-bottom: 15px;
+}
+
 input {
   width: 100%;
   padding: 10px;
   font-size: 16px;
-  margin: 10px 0;
   border-radius: 8px;
   border: none;
+  margin-bottom: 10px;
 }
 
 button {
@@ -37,4 +43,8 @@ button {
 
 button:hover {
   background: #00c288;
+}
+
+.hidden {
+  display: none;
 }
