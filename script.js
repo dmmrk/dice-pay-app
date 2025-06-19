@@ -1,11 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
-
-    if (!tg.initData) {
-        document.getElementById('app').innerHTML = '<h1>Ошибка</h1><p>Это приложение можно открыть только внутри Telegram.</p>';
-        return;
-    }
-
     tg.ready();
     tg.expand();
 
@@ -21,19 +15,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendTxButton = document.getElementById('send-tx-button');
     const amountInput = document.getElementById('amount-input');
 
+    // Эта подписка по-прежнему отвечает за показ/скрытие формы
     tonConnectUI.onStatusChange(wallet => {
         paymentForm.classList.toggle('hidden', !wallet);
     });
 
+    // Обработчик нажатия на кнопку "Пополнить"
     sendTxButton.addEventListener('click', async () => {
-        if (!tonConnectUI.connected) {
-            alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
+        // --- ГЛАВНОЕ ИСПРАВЛЕНИЕ ---
+        // Получаем актуальный статус кошелька напрямую из свойства .wallet
+        const wallet = tonConnectUI.wallet;
+
+        if (!wallet) {
+            alert('Кошелек не подключен. Пожалуйста, сначала подключите его.');
             return;
         }
 
         const amount = parseFloat(amountInput.value);
-        if (isNaN(amount) || amount <= 0.01) {
-            alert('Пожалуйста, введите сумму больше 0.01 TON.');
+        if (isNaN(amount) || amount <= 0) {
+            alert('Пожалуйста, введите корректную сумму.');
             return;
         }
 
@@ -41,23 +41,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const userId = tg.initDataUnsafe?.user?.id;
 
         if (!userId) {
-            alert("Критическая ошибка: не удалось получить ваш Telegram ID.");
+            alert("Ошибка: не удалось получить ваш Telegram ID.");
             return;
         }
 
-        // ВАЖНО: Мы больше не создаем payload вручную.
-        // Мы передаем комментарий как простой текст, а библиотека
-        // TON Connect UI сама его правильно упакует для кошелька.
         const comment = `dep_${userId}`;
+        // Мы не используем payload, так как TonConnect UI сам его формирует
+        // на основе простого текстового комментария.
 
         const transaction = {
-            validUntil: Math.floor(Date.now() / 1000) + 300,
+            validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
             messages: [
                 {
                     address: BOT_WALLET_ADDRESS,
                     amount: amountNano,
-                    // Передаем комментарий как 'payload', TonConnectUI сам его обработает
-                    payload: btoa(comment) // Просто кодируем текст в base64
+                    // payload: btoa(comment) // Можно передавать как простой текст, либо убрать, если кошелек ругается
                 }
             ]
         };
@@ -67,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
             tg.close();
         } catch (err) {
             console.error("Ошибка при отправке транзакции:", err);
-            // alert('Произошла ошибка при отправке транзакции. Попробуйте снова.');
         }
     });
 });
