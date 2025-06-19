@@ -1,8 +1,7 @@
 // Функция для правильной упаковки комментария в бинарный формат (BOC)
 function encodeTextPayload(text) {
-    // ИСПРАВЛЕНО: Правильное имя объекта - window.ton, а не window.ton_core
-    const cell = window.ton.beginCell()
-        .storeUint(0, 32) // op-code для текстового комментария
+    const cell = window.ton_core.beginCell()
+        .storeUint(0, 32) // TON: msg.dataText (опкод = 0)
         .storeStringTail(text)
         .endCell();
     return cell.toBoc().toString('base64');
@@ -11,16 +10,21 @@ function encodeTextPayload(text) {
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
 
+    // Защита: проверяем, что WebApp открыт через Telegram
     if (!tg.initData) {
-        document.getElementById('app').innerHTML = '<h1>Ошибка</h1><p>Это приложение можно открыть только внутри Telegram.</p>';
+        document.getElementById('app').innerHTML = `
+            <h1>Ошибка</h1>
+            <p>Это приложение можно открыть только внутри Telegram.</p>
+        `;
         return;
     }
 
     tg.ready();
     tg.expand();
 
-    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
+    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6";
 
+    // Инициализация TonConnect
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json',
         buttonRootId: 'ton-connect-button'
@@ -30,10 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendTxButton = document.getElementById('send-tx-button');
     const amountInput = document.getElementById('amount-input');
 
+    // Показываем форму только если кошелек подключен
     tonConnectUI.onStatusChange(wallet => {
         paymentForm.classList.toggle('hidden', !wallet);
     });
 
+    // Нажатие на кнопку "Пополнить"
     sendTxButton.addEventListener('click', async () => {
         if (!tonConnectUI.connected) {
             alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
@@ -58,19 +64,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const payload = encodeTextPayload(comment);
 
         const transaction = {
-            validUntil: Math.floor(Date.now() / 1000) + 300,
+            validUntil: Math.floor(Date.now() / 1000) + 300, // +5 минут
             messages: [
                 {
                     address: BOT_WALLET_ADDRESS,
                     amount: amountNano,
-                    payload: payload 
+                    payload: payload
                 }
             ]
         };
 
         try {
             await tonConnectUI.sendTransaction(transaction);
-            tg.close();
+            tg.close(); // Закрываем WebApp после отправки
         } catch (err) {
             console.error("Ошибка при отправке транзакции:", err);
             alert('Произошла ошибка при отправке транзакции. Попробуйте снова.');
