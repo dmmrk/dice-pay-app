@@ -1,21 +1,23 @@
-// Функция для правильной упаковки комментария (BOC)
+// --- Упаковка комментария dep_<user_id> в BOC формат ---
 function encodeTextPayload(text) {
     if (!window.ton_core) {
-        alert("Ошибка: TON Core не загружен. Проверь подключение библиотеки.");
+        alert("❌ Ошибка: TON Core не загружен.");
         return null;
     }
 
     const cell = window.ton_core.beginCell()
-        .storeUint(0, 32)
+        .storeUint(0, 32) // msg.dataText (тип сообщения)
         .storeStringTail(text)
         .endCell();
 
     return cell.toBoc().toString('base64');
 }
 
+// --- Инициализация после загрузки страницы ---
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
 
+    // Защита от открытия вне Telegram
     if (!tg.initData) {
         document.getElementById('app').innerHTML = `
             <h1>Ошибка</h1>
@@ -38,11 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendTxButton = document.getElementById('send-tx-button');
     const amountInput = document.getElementById('amount-input');
 
+    // Показываем/скрываем форму после подключения кошелька
     tonConnectUI.onStatusChange(wallet => {
         paymentForm.classList.toggle('hidden', !wallet);
     });
 
     sendTxButton.addEventListener('click', async () => {
+        // ✅ Проверяем, подключен ли кошелек (новый способ)
         const wallet = await tonConnectUI.connectedWallet;
         if (!wallet) {
             alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
@@ -59,17 +63,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const userId = tg.initDataUnsafe?.user?.id;
 
         if (!userId) {
-            alert("Ошибка: не удалось получить ваш Telegram ID.");
+            alert("❌ Не удалось получить ваш Telegram ID.");
             return;
         }
 
         const comment = `dep_${userId}`;
         const payload = encodeTextPayload(comment);
-
         if (!payload) return;
 
         const tx = {
-            validUntil: Math.floor(Date.now() / 1000) + 300,
+            validUntil: Math.floor(Date.now() / 1000) + 300, // +5 минут
             messages: [
                 {
                     address: BOT_WALLET_ADDRESS,
@@ -81,9 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await tonConnectUI.sendTransaction(tx);
-            tg.close();
+            tg.close(); // Закрыть WebApp после отправки
         } catch (err) {
-            console.error("Ошибка при отправке транзакции:", err);
+            console.error("Ошибка TonConnect:", err);
             alert('Ошибка при отправке транзакции. Попробуйте снова.');
         }
     });
