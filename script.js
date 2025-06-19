@@ -1,7 +1,7 @@
-// Проверка наличия ton_core перед сериализацией
+// Функция для правильной упаковки комментария (BOC)
 function encodeTextPayload(text) {
     if (!window.ton_core) {
-        alert("Ошибка: TON Core не загружен.");
+        alert("Ошибка: TON Core не загружен. Проверь подключение библиотеки.");
         return null;
     }
 
@@ -9,6 +9,7 @@ function encodeTextPayload(text) {
         .storeUint(0, 32)
         .storeStringTail(text)
         .endCell();
+
     return cell.toBoc().toString('base64');
 }
 
