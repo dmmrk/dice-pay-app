@@ -10,13 +10,13 @@ function encodeTextPayload(text) {
         .storeUint(0, 32) // op-code для текстового комментария
         .storeStringTail(text)
         .endCell();
-    return cell.toBoc().toString('base64'); 
+    return cell.toBoc().toString('base64');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
 
-    if (!tg.initData) {
+    if (Object.keys(tg.initDataUnsafe).length === 0) {
         document.getElementById('app').innerHTML = '<h1>Ошибка</h1><p>Это приложение можно открыть только внутри Telegram.</p>';
         return;
     }
@@ -40,9 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     sendTxButton.addEventListener('click', async () => {
-        const wallet = tonConnectUI.wallet;
-        if (!wallet) {
-            alert('Кошелек не подключен. Пожалуйста, сначала подключите его.');
+        if (!tonConnectUI.wallet) {
+            alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
             return;
         }
 
@@ -62,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const comment = `dep_${userId}`;
         const payload = encodeTextPayload(comment);
-
+        
         if (!payload) return;
 
         const transaction = {
@@ -81,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tg.close();
         } catch (err) {
             console.error("Ошибка при отправке транзакции:", err);
+            alert('Произошла ошибка при отправке транзакции. Попробуйте снова.');
         }
     });
 });
