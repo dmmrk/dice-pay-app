@@ -1,32 +1,36 @@
 body {
     font-family: sans-serif;
     background-color: #151515;
-    color: #fff;
+    color: #ffffff;
     padding: 20px;
     margin: 0;
-    text-align: center;
 }
+
 #app {
     max-width: 500px;
     margin: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
 }
-h1, h3 {
+
+h1 {
     color: #00f5a0;
+    font-size: 24px;
+    margin-bottom: 10px;
 }
+
+p, h3 {
+    margin-bottom: 15px;
+}
+
 input {
     width: 100%;
     padding: 10px;
     box-sizing: border-box;
     font-size: 16px;
-    margin: 10px 0;
     border-radius: 8px;
-    border: 1px solid #555;
-    background-color: #333;
-    color: #fff;
+    border: none;
+    margin-bottom: 10px;
 }
+
 button {
     width: 100%;
     padding: 12px;
@@ -36,11 +40,12 @@ button {
     border-radius: 8px;
     color: #000;
     cursor: pointer;
-    font-weight: bold;
 }
+
 button:hover {
     background: #00c288;
 }
+
 .hidden {
     display: none;
 }
