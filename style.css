@@ -1,49 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+    --bg-color: #f4f4f8;
+    --text-color: #333333;
+    --accent-color: #a29bfe;
+    --accent-hover-color: #8176f2;
+    --button-text-color: #ffffff;
+    --card-bg-color: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+}
+
 body {
-    font-family: sans-serif;
-    background-color: #151515;
-    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     padding: 20px;
     margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 
 #app {
-    max-width: 500px;
-    margin: auto;
+    width: 100%;
+    max-width: 400px;
+    background-color: var(--card-bg-color);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px var(--shadow-color);
+    box-sizing: border-box;
+    text-align: center;
 }
 
 h1 {
-    color: #00f5a0;
     font-size: 24px;
+    font-weight: 700;
+    margin-top: 0;
     margin-bottom: 10px;
+    color: var(--text-color);
 }
 
-p, h3 {
-    margin-bottom: 15px;
+h1 .emoji {
+    display: inline-block;
+    margin-right: 8px;
+    transform: translateY(2px);
+}
+
+p {
+    color: #6a6a6a;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+#ton-connect-button {
+    margin-bottom: 25px;
+}
+
+#payment-form h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #6a6a6a;
+    margin-bottom: 10px;
 }
 
 input {
     width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-    font-size: 16px;
-    border-radius: 8px;
-    border: none;
-    margin-bottom: 10px;
-}
-
-button {
-    width: 100%;
     padding: 12px;
-    font-size: 16px;
-    background: #00f5a0;
-    border: none;
-    border-radius: 8px;
-    color: #000;
-    cursor: pointer;
+    font-size: 18px;
+    text-align: center;
+    box-sizing: border-box;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    background-color: #f9f9f9;
+    color: var(--text-color);
+    margin-bottom: 15px;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-button:hover {
-    background: #00c288;
+input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(162, 155, 254, 0.25);
+}
+
+button#send-tx-button {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    background: var(--accent-color);
+    border: none;
+    border-radius: 12px;
+    color: var(--button-text-color);
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s;
+}
+
+button#send-tx-button:hover {
+    background: var(--accent-hover-color);
 }
 
 .hidden {
