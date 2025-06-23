@@ -10,7 +10,7 @@ function encodeTextPayload(text) {
         .storeUint(0, 32) // op-code для текстового комментария
         .storeStringTail(text)
         .endCell();
-    return cell.toBoc().toString('base64');
+    return cell.toBoc().toString('base64'); 
 }
 
 document.addEventListener('DOMContentLoaded', () => {
