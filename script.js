@@ -1,10 +1,13 @@
+// Функция для правильной упаковки комментария в бинарный формат (BOC)
 function encodeTextPayload(text) {
+    // Проверяем, что библиотека TonCore загрузилась
     if (!window.TonCore) {
         alert("Ошибка: Необходимая библиотека (TonCore) не загружена. Обновите страницу и попробуйте снова.");
         return null;
     }
+    // Используем правильное имя объекта: TonCore
     const cell = window.TonCore.beginCell()
-        .storeUint(0, 32)
+        .storeUint(0, 32) // op-code для текстового комментария
         .storeStringTail(text)
         .endCell();
     return cell.toBoc().toString('base64');
@@ -21,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.ready();
     tg.expand();
 
-    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6";
+    const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
 
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json',
@@ -37,8 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     sendTxButton.addEventListener('click', async () => {
-        if (!tonConnectUI.wallet) {
-            alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
+        const wallet = tonConnectUI.wallet;
+        if (!wallet) {
+            alert('Кошелек не подключен. Пожалуйста, сначала подключите его.');
             return;
         }
 
@@ -58,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const comment = `dep_${userId}`;
         const payload = encodeTextPayload(comment);
-        
+
         if (!payload) return;
 
         const transaction = {
