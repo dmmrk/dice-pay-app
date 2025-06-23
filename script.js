@@ -1,28 +1,9 @@
-// Функция для правильной упаковки комментария в бинарный формат (BOC)
-function encodeTextPayload(text) {
-    // Проверяем, что библиотека TonCore загрузилась
-    if (!window.TonCore) {
-        alert("Ошибка: Необходимая библиотека (TonCore) не загружена. Пожалуйста, обновите страницу.");
-        return null;
-    }
-    const cell = window.TonCore.beginCell()
-        .storeUint(0, 32) // op-code для текстового комментария
-        .storeStringTail(text)
-        .endCell();
-    return cell.toBoc().toString('base64');
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
-
-    if (Object.keys(tg.initDataUnsafe).length === 0) {
-        document.getElementById('app').innerHTML = '<h1>Ошибка</h1><p>Это приложение можно открыть только внутри Telegram.</p>';
-        return;
-    }
-
     tg.ready();
     tg.expand();
 
+    // Адрес кошелька вашего БОТА
     const BOT_WALLET_ADDRESS = "UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6"; 
 
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -40,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     sendTxButton.addEventListener('click', async () => {
         if (!tonConnectUI.wallet) {
-            alert('Кошелек не подключен. Пожалуйста, сначала подключите кошелек.');
+            alert('Кошелек не подключен. Пожалуйста, сначала подключите его.');
             return;
         }
 
@@ -51,32 +32,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const amountNano = Math.floor(amount * 1e9).toString();
-        const userId = tg.initDataUnsafe?.user?.id;
 
-        if (!userId) {
-            alert("Критическая ошибка: не удалось получить ваш Telegram ID.");
-            return;
-        }
-
-        const comment = `dep_${userId}`;
-        // ИСПРАВЛЕНО: Используем новую функцию для создания правильного payload
-        const payload = encodeTextPayload(comment);
-        
-        if (!payload) return; // Остановка, если payload не был создан
-
+        // --- ИЗМЕНЕНО: СОЗДАЕМ ТРАНЗАКЦИЮ БЕЗ PAYLOAD (MEMO) ---
         const transaction = {
-            validUntil: Math.floor(Date.now() / 1000) + 300,
+            validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
             messages: [
                 {
                     address: BOT_WALLET_ADDRESS,
-                    amount: amountNano,
-                    payload: payload 
+                    amount: amountNano
+                    // поле payload полностью отсутствует
                 }
             ]
         };
 
         try {
             await tonConnectUI.sendTransaction(transaction);
+            tg.showAlert('Транзакция отправлена! Обратитесь к администратору для зачисления.');
             tg.close();
         } catch (err) {
             console.error("Ошибка при отправке транзакции:", err);
