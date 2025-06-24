@@ -10,7 +10,7 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-const urlParams = new URLSearchParams(window.location.search);
+const urlParams = new URLSearchParams(window.location.search); 
 const userId = urlParams.get('user_id');
 
 if (!userId) {
