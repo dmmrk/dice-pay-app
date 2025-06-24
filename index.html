@@ -10,9 +10,7 @@
     <div class="app-container">
         <h1>Пополнить баланс</h1>
         <p>Сначала подключите кошелек, затем введите сумму в TON и нажмите "Отправить".</p>
-
         <div id="ton-connect-button"></div>
-        
         <div id="payment-section" class="hidden">
             <div class="input-group">
                 <label for="ton-amount-input">Сумма в TON для отправки:</label>
@@ -20,16 +18,12 @@
             </div>
             <button id="send-button">Отправить</button>
         </div>
-        
         <div id="wallet-info" class="hidden">
             Подключен: <span id="wallet-address"></span>
         </div>
     </div>
-
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-
     <script src="script.js"></script>
 </body>
 </html>
