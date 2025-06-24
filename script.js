@@ -64,14 +64,14 @@ sendButton.addEventListener('click', async () => {
     const amountInNanoTON = Math.round(amount * 1_000_000_000).toString();
     const comment = `dep_${userId}`;
 
-    const transaction = {
-        validUntil: Math.floor(Date.now() / 1000) + 360, // 6 минут
-        messages: [{
-            address: RECIPIENT_WALLET,
-            amount: amountInNanoTON,
-            payload: btoa(comment) // btoa() кодирует строку в base64
-        }]
-    };
+  const transaction = {
+    validUntil: Math.floor(Date.now() / 1000) + 360,
+    messages: [{
+        address: RECIPIENT_WALLET,
+        amount: amountInNanoTON
+        // Поле payload полностью убрали
+    }]
+};
 
     try {
         tg.MainButton.setText('Ожидаем подтверждения в кошельке...').show().showProgress();
