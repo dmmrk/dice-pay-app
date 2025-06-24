@@ -2,8 +2,8 @@
 
 // --- НАСТРОЙКИ ---
 // !!! ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА СВОИ !!!
-const RECIPIENT_WALLET = 'UQ...'; // <-- ВСТАВЬТЕ АДРЕС ВАШЕГО ОСНОВНОГО (MAINNET) КОШЕЛЬКА
-const MANIFEST_URL = 'https://.../tonconnect-manifest.json'; // <-- ВСТАВЬТЕ ПОЛНУЮ ССЫЛКУ НА ВАШ ФАЙЛ МАНИФЕСТА
+const RECIPIENT_WALLET = 'UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6'; 
+const MANIFEST_URL = 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json';
 
 // --- ИНИЦИАЛИЗАЦИЯ ---
 const tg = window.Telegram.WebApp;
