@@ -1,20 +1,25 @@
-// --- ТЕСТОВЫЙ СКРИПТ С РАСШИРЕННЫМ ЛОГИРОВАНИЕМ ---
+// --- ИСПРАВЛЕННЫЙ ТЕСТОВЫЙ СКРИПТ ---
 
 // --- НАСТРОЙКИ ---
-const RECIPIENT_WALLET_FOR_TEST = 'UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6';
+const RECIPIENT_WALLET_FOR_TEST = 'UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6'; 
 const MANIFEST_URL = 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json'; 
 
 // --- ИНИЦИАЛИЗАЦИЯ ---
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
-console.log("WebApp инициализировано. UserID:", urlParams.get('user_id'));
 
+// ↓↓↓ ИСПРАВЛЕНИЕ ЗДЕСЬ ↓↓↓
+// Сначала создаем переменные
 const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get('user_id');
 
+// И только потом их используем
+console.log("WebApp инициализировано. UserID:", userId);
+
 if (!userId) {
-    tg.showAlert('Ошибка: ID пользователя не найден.');
+    tg.showAlert('Ошибка: ID пользователя не найден. Пожалуйста, запустите приложение снова из Telegram-бота.');
+    tg.close();
     throw new Error("User ID is not provided in URL");
 }
 
@@ -50,23 +55,16 @@ sendButton.addEventListener('click', async () => {
 
     try {
         tg.MainButton.setText('Ожидаем подтверждения...').show().showProgress();
-
-        // ШАГ А: Отправка транзакции в сеть
         const result = await tonConnectUI.sendTransaction(testTransaction);
-        
-        // Если мы дошли сюда, значит транзакция была подписана и отправлена УСПЕШНО
         console.log("2. Транзакция УСПЕШНО отправлена в сеть. Получен результат (BOC):", result.boc);
 
         const dataToSend = { boc: result.boc };
         console.log("3. Подготовлены данные для отправки боту:", dataToSend);
         
-        // ШАГ Б: Отправка данных боту
         try {
             tg.sendData(JSON.stringify(dataToSend));
-            // Если мы дошли сюда, вызов sendData прошел без JS-ошибок
             console.log("4. Вызвана функция tg.sendData(). Ошибок на стороне WebApp нет.");
             tg.showAlert('Данные отправлены боту для проверки.');
-
         } catch (e) {
             console.error("5. КРИТИЧЕСКАЯ ОШИБКА! tg.sendData() вызвал исключение:", e);
             tg.showAlert('Произошла ошибка при отправке данных боту.');
@@ -74,7 +72,6 @@ sendButton.addEventListener('click', async () => {
         
         tg.MainButton.hideProgress();
         setTimeout(() => tg.close(), 4000);
-
     } catch (error) {
         console.error('Ошибка на шаге отправки транзакции (sendTransaction):', error);
         tg.MainButton.hideProgress();
