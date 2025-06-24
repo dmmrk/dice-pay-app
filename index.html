@@ -4,21 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>Пополнение баланса</title>
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
         <h1>Пополнить баланс</h1>
-        <p>Введите сумму в TON и нажмите "Отправить". Платеж будет зачислен после подтверждения в сети.</p>
-
-        <div class="input-group">
-            <label for="ton-amount-input">Сумма в TON для отправки:</label>
-            <input type="number" id="ton-amount-input" value="1.0" min="0.1" step="0.1" placeholder="Например, 5.5">
-        </div>
+        <p>Сначала подключите кошелек, затем введите сумму в TON и нажмите "Отправить".</p>
 
         <div id="ton-connect-button"></div>
-
-        <button id="send-button" class="hidden">Отправить</button>
+        
+        <div id="payment-section" class="hidden">
+            <div class="input-group">
+                <label for="ton-amount-input">Сумма в TON для отправки:</label>
+                <input type="number" id="ton-amount-input" value="1.0" min="0.1" step="0.1" placeholder="Например, 5.5">
+            </div>
+            <button id="send-button">Отправить</button>
+        </div>
         
         <div id="wallet-info" class="hidden">
             Подключен: <span id="wallet-address"></span>
@@ -26,6 +27,9 @@
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="script.js" type="module"></script>
+    
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+
+    <script src="script.js"></script>
 </body>
 </html>
