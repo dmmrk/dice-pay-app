@@ -1,21 +1,20 @@
-// Убедитесь, что строка "import..." вверху ОТСУТСТВУЕТ
+// --- ТЕСТОВЫЙ СКРИПТ С РАСШИРЕННЫМ ЛОГИРОВАНИЕМ ---
 
-// --- ВАЖНЫЕ НАСТРОЙКИ ---
-// ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА СВОИ!
-const RECIPIENT_WALLET = 'UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6'; 
+// --- НАСТРОЙКИ ---
+const RECIPIENT_WALLET_FOR_TEST = 'UQD8UPzW61QlhcyWGq7GFI1u5mp-VNCLh4mgMq0cPY1Cn0c6';
 const MANIFEST_URL = 'https://dmmrk.github.io/dice-pay-app/tonconnect-manifest.json'; 
 
 // --- ИНИЦИАЛИЗАЦИЯ ---
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
+console.log("WebApp инициализировано. UserID:", urlParams.get('user_id'));
 
 const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get('user_id');
 
 if (!userId) {
-    tg.showAlert('Ошибка: ID пользователя не найден. Пожалуйста, запустите приложение снова из Telegram-бота.');
-    tg.close();
+    tg.showAlert('Ошибка: ID пользователя не найден.');
     throw new Error("User ID is not provided in URL");
 }
 
@@ -24,55 +23,61 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
     buttonRootId: 'ton-connect-button'
 });
 
-// --- ЭЛЕМЕНТЫ DOM ---
-const amountInput = document.getElementById('ton-amount-input');
-const sendButton = document.getElementById('send-button');
-const walletInfoEl = document.getElementById('wallet-info');
-const walletAddressEl = document.getElementById('wallet-address');
+// --- ЭЛЕМЕНТЫ DOM И ЛОГИКА ---
 const paymentSection = document.getElementById('payment-section');
+const sendButton = document.getElementById('send-button');
 
-// --- ЛОГИКА ---
 tonConnectUI.onStatusChange(wallet => {
     if (wallet) {
-        const address = wallet.account.address;
-        walletAddressEl.textContent = `${address.slice(0, 6)}...${address.slice(-4)}`;
-        walletInfoEl.classList.remove('hidden');
+        console.log("Кошелек подключен:", wallet.account.address);
         paymentSection.classList.remove('hidden');
     } else {
-        walletInfoEl.classList.add('hidden');
+        console.log("Кошелек отключен.");
         paymentSection.classList.add('hidden');
     }
 });
 
 sendButton.addEventListener('click', async () => {
-    const amount = parseFloat(amountInput.value);
-    if (!amount || amount <= 0.01) {
-        tg.showAlert('Пожалуйста, введите корректную сумму (минимум 0.01 TON).');
-        return;
-    }
-
-    const amountInNanoTON = Math.round(amount * 1_000_000_000).toString();
-
-    // ↓↓↓ ВАЖНОЕ МЕСТО! УБЕДИТЕСЬ, ЧТО ОБЪЕКТ ВЫГЛЯДИТ ИМЕННО ТАК ↓↓↓
-    const transaction = {
+    const testTransaction = {
         validUntil: Math.floor(Date.now() / 1000) + 360,
         messages: [{
-            address: RECIPIENT_WALLET,
-            amount: amountInNanoTON
-            // Поле payload полностью отсутствует!
+            address: RECIPIENT_WALLET_FOR_TEST,
+            amount: '50000000' // 0.05 TON
         }]
     };
 
+    console.log("1. Нажата кнопка 'Отправить'. Начинаем транзакцию с объектом:", testTransaction);
+
     try {
-        tg.MainButton.setText('Ожидаем подтверждения в кошельке...').show().showProgress();
-        const result = await tonConnectUI.sendTransaction(transaction); // Эта строка у вас вызывает ошибку (line 85)
-        tg.sendData(JSON.stringify({ boc: result.boc }));
-        tg.MainButton.setText('Готово!').hideProgress();
-        tg.showAlert('Транзакция отправлена! Бот пришлет уведомление о зачислении.');
-        setTimeout(() => tg.close(), 3000);
-    } catch (error) {
+        tg.MainButton.setText('Ожидаем подтверждения...').show().showProgress();
+
+        // ШАГ А: Отправка транзакции в сеть
+        const result = await tonConnectUI.sendTransaction(testTransaction);
+        
+        // Если мы дошли сюда, значит транзакция была подписана и отправлена УСПЕШНО
+        console.log("2. Транзакция УСПЕШНО отправлена в сеть. Получен результат (BOC):", result.boc);
+
+        const dataToSend = { boc: result.boc };
+        console.log("3. Подготовлены данные для отправки боту:", dataToSend);
+        
+        // ШАГ Б: Отправка данных боту
+        try {
+            tg.sendData(JSON.stringify(dataToSend));
+            // Если мы дошли сюда, вызов sendData прошел без JS-ошибок
+            console.log("4. Вызвана функция tg.sendData(). Ошибок на стороне WebApp нет.");
+            tg.showAlert('Данные отправлены боту для проверки.');
+
+        } catch (e) {
+            console.error("5. КРИТИЧЕСКАЯ ОШИБКА! tg.sendData() вызвал исключение:", e);
+            tg.showAlert('Произошла ошибка при отправке данных боту.');
+        }
+        
         tg.MainButton.hideProgress();
-        console.error('Ошибка отправки транзакции:', error);
-        tg.showAlert(`Произошла ошибка: ${error.message || 'Транзакция была отклонена.'}`);
+        setTimeout(() => tg.close(), 4000);
+
+    } catch (error) {
+        console.error('Ошибка на шаге отправки транзакции (sendTransaction):', error);
+        tg.MainButton.hideProgress();
+        tg.showAlert(`Произошла ошибка при подписании транзакции: ${error.message || 'Транзакция была отклонена.'}`);
     }
 });
